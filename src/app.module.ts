@@ -1,11 +1,12 @@
-import { APP_FILTER } from '@nestjs/core';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
-import { UsersModule } from './modules/users/users.module';
+import { AppController } from 'src/app.controller';
+import { AppService } from 'src/app.service';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { UsersModule } from 'src/modules/users/users.module';
+import { TransformInterceptor } from 'src/common/interceptors/transform.interceptor';
 
 @Module({
   imports: [PrismaModule, UsersModule],
@@ -13,6 +14,7 @@ import { UsersModule } from './modules/users/users.module';
   providers: [
     AppService,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
   ],
 })
 export class AppModule {}
