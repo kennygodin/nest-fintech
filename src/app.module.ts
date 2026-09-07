@@ -1,5 +1,6 @@
 import appConfig from 'src/config/app.config';
 import databaseConfig from 'src/config/database.config';
+import jwtConfig from 'src/config/jwt.config';
 import { envValidationSchema } from 'src/config/env.validation';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
@@ -10,14 +11,16 @@ import { AppService } from 'src/app.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from 'src/modules/users/users.module';
 import { TransformInterceptor } from 'src/common/interceptors/transform.interceptor';
+import { AuthModule } from 'src/modules/auth/auth.module';
 
 @Module({
   imports: [
-    PrismaModule,
+    AuthModule,
     UsersModule,
+    PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig],
+      load: [appConfig, databaseConfig, jwtConfig],
       validationSchema: envValidationSchema,
     }),
   ],
