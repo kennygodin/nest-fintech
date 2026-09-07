@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { AppModule } from './app.module';
+import { AppModule } from 'src/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +13,7 @@ async function bootstrap() {
     .setTitle('Nest Fintech')
     .setDescription('Fintech transaction API')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

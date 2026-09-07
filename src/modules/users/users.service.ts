@@ -1,5 +1,4 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { USER_MESSAGES } from './users.constants';
 import { UsersRepository } from './users.repository';
@@ -8,15 +7,19 @@ import { UsersRepository } from './users.repository';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async create(dto: CreateUserDto) {
-    const emailExist = await this.usersRepository.findUserByEmail(dto.email);
+  async findByEmail(email: string) {
+    return this.usersRepository.findUserByEmail(email);
+  }
+
+  async create(email: string, password: string) {
+    const emailExist = await this.usersRepository.findUserByEmail(email);
 
     if (emailExist) {
       throw new ConflictException(USER_MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    return this.usersRepository.createUser(dto.email, passwordHash);
+    return this.usersRepository.createUser(email, passwordHash);
   }
 }
