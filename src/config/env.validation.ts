@@ -5,4 +5,5 @@ export const envValidationSchema = Joi.object({
   DATABASE_URL: Joi.string().required(),
   JWT_SECRET: Joi.string().required(),
   JWT_EXPIRES_IN: Joi.string().default('15m'),
+  REFRESH_TOKEN_TTL_DAYS: Joi.number().default(1),
 });

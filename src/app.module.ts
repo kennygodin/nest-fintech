@@ -1,3 +1,4 @@
+import refreshTokenConfig from 'src/config/refresh-token.config';
 import appConfig from 'src/config/app.config';
 import databaseConfig from 'src/config/database.config';
 import jwtConfig from 'src/config/jwt.config';
@@ -20,7 +21,7 @@ import { AuthModule } from 'src/modules/auth/auth.module';
     PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig],
+      load: [appConfig, databaseConfig, jwtConfig, refreshTokenConfig],
       validationSchema: envValidationSchema,
     }),
   ],
