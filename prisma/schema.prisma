@@ -31,6 +31,7 @@ model User {
 
   wallet       Wallet?
   address      Address?
+  refreshTokens RefreshToken[]
 }
 
 model Wallet {
@@ -52,4 +53,14 @@ model Address {
   state      String?
   postalCode String?
   country    String?
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String
+  revokedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
 }
