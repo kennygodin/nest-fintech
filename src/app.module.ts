@@ -14,9 +14,11 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { TransformInterceptor } from 'src/common/interceptors/transform.interceptor';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { AdminModule } from 'src/modules/admin/admin.module';
+import { WalletModule } from 'src/modules/wallet/wallet.module';
 
 @Module({
   imports: [
+    WalletModule,
     AdminModule,
     AuthModule,
     UsersModule,

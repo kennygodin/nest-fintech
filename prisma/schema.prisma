@@ -17,6 +17,31 @@ enum Role {
   admin
 }
 
+enum WalletStatus {
+  active
+  frozen
+  closed
+}
+
+enum TransactionType {
+  deposit
+  transfer
+  withdrawal
+}
+
+enum TransactionStatus {
+  pending
+  processing
+  success
+  failed
+  reversed
+}
+
+enum LedgerEntryType {
+  debit
+  credit
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -38,10 +63,16 @@ model Wallet {
   id        String   @id @default(uuid())
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
-  balance   Decimal  @default(0) @db.Decimal(18, 2)
+  balance   Int      @default(0)
   currency  String   @default("NGN")
+  status    WalletStatus @default(active)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  sentTransactions    Transaction[] @relation("SenderTransactions")
+  receivedTransaction Transaction[] @relation("RecipientTransactions")
+
+  entries LedgerEntry[]
 }
 
 model Address {
@@ -63,4 +94,39 @@ model RefreshToken {
   revokedAt DateTime?
   expiresAt DateTime
   createdAt DateTime  @default(now())
+}
+
+model LedgerEntry {
+  id            String   @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  walletId      String
+  wallet        Wallet      @relation(fields: [walletId], references: [id])
+  entryType     LedgerEntryType
+  amount        Int
+  balanceBefore Int
+  balanceAfter  Int
+  createdAt     DateTime @default(now())
+}
+
+model Transaction {
+  id             String            @id @default(uuid())
+  reference      String            @unique @default(uuid())
+  type           TransactionType
+  status         TransactionStatus @default(pending)
+  amount         Int
+  currency       String            @default("NGN")
+  description    String?
+  idempotencyKey String            @unique
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  senderWalletId    String?
+  senderWallet      Wallet? @relation("SenderTransactions", fields: [senderWalletId], references: [id])
+
+  recipientWalletId String?
+  recipientWallet   Wallet? @relation("RecipientTransactions", fields: [recipientWalletId], references: [id])
+
+  entries LedgerEntry[]
 }
