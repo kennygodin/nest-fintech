@@ -13,9 +13,11 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from 'src/modules/users/users.module';
 import { TransformInterceptor } from 'src/common/interceptors/transform.interceptor';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { AdminModule } from 'src/modules/admin/admin.module';
 
 @Module({
   imports: [
+    AdminModule,
     AuthModule,
     UsersModule,
     PrismaModule,

@@ -13,7 +13,7 @@ import { USER_MESSAGES } from 'src/modules/users/users.constants';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ResponseMessage(USER_MESSAGES.CREATED)
   create(@Body() dto: CreateUserDto) {
