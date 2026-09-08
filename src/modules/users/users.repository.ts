@@ -7,6 +7,12 @@ import { USER_MESSAGES } from './users.constants';
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findAllUsers() {
+    return this.prisma.user.findMany({
+      select: { id: true, email: true },
+    });
+  }
+
   async findUserByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
   }
