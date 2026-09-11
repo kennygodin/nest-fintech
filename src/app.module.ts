@@ -15,9 +15,11 @@ import { TransformInterceptor } from 'src/common/interceptors/transform.intercep
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { AdminModule } from 'src/modules/admin/admin.module';
 import { WalletModule } from 'src/modules/wallet/wallet.module';
+import { TransactionModule } from 'src/modules/transactions/transaction.module';
 
 @Module({
   imports: [
+    TransactionModule,
     WalletModule,
     AdminModule,
     AuthModule,

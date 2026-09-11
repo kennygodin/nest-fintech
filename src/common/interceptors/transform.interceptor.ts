@@ -23,11 +23,18 @@ export class TransformInterceptor implements NestInterceptor {
       .getResponse<Response>().statusCode;
 
     return next.handle().pipe(
-      map((data: unknown) => ({
-        statusCode,
-        message,
-        data,
-      })),
+      map((data: unknown) => {
+        if (
+          data &&
+          typeof data === 'object' &&
+          'meta' in data &&
+          'data' in data
+        ) {
+          const { data: payload, meta } = data;
+          return { statusCode, message, data: payload, meta };
+        }
+        return { statusCode, message, data };
+      }),
     );
   }
 }
