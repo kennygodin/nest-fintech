@@ -9,7 +9,7 @@ import { WalletRepository } from 'src/modules/wallet/wallet.repository';
 import { WALLET_MESSAGES } from 'src/modules/wallet/wallet.constants';
 import { Prisma, WalletStatus } from 'generated/prisma/client';
 import { UsersService } from 'src/modules/users/users.service';
-import { USER_MESSAGES } from '../users/users.constants';
+import { USER_MESSAGES } from 'src/modules/users/users.constants';
 
 @Injectable()
 export class WalletService {
@@ -17,6 +17,48 @@ export class WalletService {
     private readonly walletRepository: WalletRepository,
     private readonly usersService: UsersService,
   ) {}
+
+  async withdraw(
+    userId: string,
+    amount: number,
+    description: string | undefined,
+    idempotencyKey: string,
+    simulateFailure: boolean,
+  ) {
+    const wallet = await this.getWallet(userId);
+
+    if (wallet.status !== 'active') {
+      throw new NotFoundException(WALLET_MESSAGES.NOT_ACTIVE);
+    }
+
+    try {
+      return await this.walletRepository.createWithdrawal(
+        wallet.id,
+        amount,
+        description,
+        idempotencyKey,
+        simulateFailure,
+      );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const existing =
+          await this.walletRepository.findTransactionByIdempotencyKey(
+            idempotencyKey,
+          );
+
+        if (existing?.amount === amount) {
+          return existing;
+        }
+
+        throw new ConflictException(WALLET_MESSAGES.IDEMPOTENCY_CONFLICT);
+      }
+
+      throw error;
+    }
+  }
 
   async transfer(
     senderId: string,

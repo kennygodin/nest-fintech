@@ -11,6 +11,81 @@ import { WALLET_MESSAGES } from 'src/modules/wallet/wallet.constants';
 export class WalletRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async createWithdrawal(
+    walletId: string,
+    amount: number,
+    description: string | undefined,
+    idempotencyKey: string,
+    simulateFailure: boolean,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const [debitedWallet] = await tx.wallet.updateManyAndReturn({
+        where: { id: walletId, balance: { gte: amount } },
+        data: { balance: { decrement: amount } },
+      });
+
+      if (!debitedWallet) {
+        throw new BadRequestException(WALLET_MESSAGES.INSUFFICIENT_BALANCE);
+      }
+
+      const transaction = await tx.transaction.create({
+        data: {
+          type: TransactionType.withdrawal,
+          status: TransactionStatus.processing,
+          amount,
+          description,
+          idempotencyKey,
+          senderWalletId: walletId,
+        },
+      });
+
+      await tx.ledgerEntry.create({
+        data: {
+          transactionId: transaction.id,
+          walletId,
+          entryType: LedgerEntryType.debit,
+          amount,
+          balanceBefore: debitedWallet.balance + amount,
+          balanceAfter: debitedWallet.balance,
+        },
+      });
+
+      if (simulateFailure) {
+        const reversedWallet = await tx.wallet.update({
+          where: { id: walletId },
+          data: {
+            balance: { increment: amount },
+          },
+        });
+
+        await tx.ledgerEntry.create({
+          data: {
+            transactionId: transaction.id,
+            entryType: LedgerEntryType.credit,
+            amount,
+            walletId,
+            balanceBefore: reversedWallet.balance - amount,
+            balanceAfter: reversedWallet.balance,
+          },
+        });
+
+        return await tx.transaction.update({
+          where: { id: transaction.id },
+          data: {
+            status: TransactionStatus.reversed,
+          },
+        });
+      }
+
+      return tx.transaction.update({
+        where: { id: transaction.id },
+        data: {
+          status: TransactionStatus.success,
+        },
+      });
+    });
+  }
+
   async createTransfer(
     senderWalletId: string,
     recipientWalletId: string,

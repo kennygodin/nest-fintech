@@ -10,11 +10,12 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { WalletService } from './wallet.service';
+import { WalletService } from 'src/modules/wallet/wallet.service';
 import { Request } from 'express';
-import { DepositDto } from './dto/deposit.dto';
-import { WALLET_MESSAGES } from './wallet.constants';
-import { TransferDto } from './dto/transfer.dto';
+import { DepositDto } from 'src/modules/wallet/dto/deposit.dto';
+import { WALLET_MESSAGES } from 'src/modules/wallet/wallet.constants';
+import { TransferDto } from 'src/modules/wallet/dto/transfer.dto';
+import { WithdrawDto } from 'src/modules/wallet/dto/withdraw.dto';
 
 @ApiTags('wallet')
 @ApiBearerAuth()
@@ -22,6 +23,26 @@ import { TransferDto } from './dto/transfer.dto';
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
+
+  @Post('withdraw')
+  @ApiOperation({ summary: 'Withdraw funds from your wallet' })
+  async withdraw(
+    @Req() req: Request,
+    @Body() dto: WithdrawDto,
+    @Headers('idempotency-key') idempotencyKey: string,
+  ) {
+    if (!idempotencyKey) {
+      throw new BadRequestException(WALLET_MESSAGES.MISSING_IDEMPOTENCY_KEY);
+    }
+
+    return this.walletService.withdraw(
+      req.user!.id,
+      dto.amount,
+      dto.description,
+      idempotencyKey,
+      dto.simulateFailure ?? false,
+    );
+  }
 
   @Post('transfer')
   @ApiOperation({ summary: 'Transfer funds to another user' })
