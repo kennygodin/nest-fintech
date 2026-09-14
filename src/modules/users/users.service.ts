@@ -2,10 +2,31 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { USER_MESSAGES } from './users.constants';
 import { UsersRepository } from './users.repository';
+import { Role, UserStatus } from 'generated/prisma/enums';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
+
+  async createAdminUser(email: string, password: string) {
+    const existingUser = await this.usersRepository.findUserByEmail(email);
+
+    if (existingUser) {
+      throw new ConflictException(USER_MESSAGES.EMAIL_ALREADY_EXISTS);
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    return this.usersRepository.createAdminUser(
+      email,
+      passwordHash,
+      Role.admin,
+    );
+  }
+
+  async updateStatus(id: string, status: UserStatus) {
+    return this.usersRepository.updateStatus(id, status);
+  }
 
   async findAll() {
     return this.usersRepository.findAllUsers();

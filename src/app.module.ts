@@ -1,4 +1,5 @@
 import refreshTokenConfig from 'src/config/refresh-token.config';
+import superadminConfig from 'src/config/superadmin.config';
 import appConfig from 'src/config/app.config';
 import databaseConfig from 'src/config/database.config';
 import jwtConfig from 'src/config/jwt.config';
@@ -16,9 +17,11 @@ import { AuthModule } from 'src/modules/auth/auth.module';
 import { AdminModule } from 'src/modules/admin/admin.module';
 import { WalletModule } from 'src/modules/wallet/wallet.module';
 import { TransactionModule } from 'src/modules/transactions/transaction.module';
+import { AuditLogModule } from 'src/modules/audit-log/audit-log.module';
 
 @Module({
   imports: [
+    AuditLogModule,
     TransactionModule,
     WalletModule,
     AdminModule,
@@ -27,7 +30,13 @@ import { TransactionModule } from 'src/modules/transactions/transaction.module';
     PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, refreshTokenConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        jwtConfig,
+        refreshTokenConfig,
+        superadminConfig,
+      ],
       validationSchema: envValidationSchema,
     }),
   ],
