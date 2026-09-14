@@ -24,14 +24,18 @@ export class TransformInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data: unknown) => {
-        if (
-          data &&
-          typeof data === 'object' &&
-          'meta' in data &&
-          'data' in data
-        ) {
-          const { data: payload, meta } = data;
-          return { statusCode, message, data: payload, meta };
+        if (data && typeof data === 'object' && 'data' in data) {
+          const wrapped = data as {
+            data: unknown;
+            message?: string;
+            meta?: unknown;
+          };
+          return {
+            statusCode,
+            message: wrapped.message ?? message,
+            data: wrapped.data,
+            ...(wrapped.meta !== undefined && { meta: wrapped.meta }),
+          };
         }
         return { statusCode, message, data };
       }),

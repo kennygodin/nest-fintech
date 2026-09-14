@@ -3,6 +3,7 @@ import {
   LedgerEntryType,
   TransactionStatus,
   TransactionType,
+  WalletStatus,
 } from 'generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { WALLET_MESSAGES } from 'src/modules/wallet/wallet.constants';
@@ -10,6 +11,17 @@ import { WALLET_MESSAGES } from 'src/modules/wallet/wallet.constants';
 @Injectable()
 export class WalletRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async findWalletById(walletId: string) {
+    return this.prisma.wallet.findUnique({ where: { id: walletId } });
+  }
+
+  async updateWalletStatus(walletId: string, status: WalletStatus) {
+    return this.prisma.wallet.update({
+      where: { id: walletId },
+      data: { status },
+    });
+  }
 
   async createWithdrawal(
     walletId: string,

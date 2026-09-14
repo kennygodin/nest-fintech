@@ -1,8 +1,10 @@
 export const AUDIT_ACTIONS = {
   UPDATE_USER_STATUS: 'UPDATE_USER_STATUS',
   CREATE_ADMIN: 'CREATE_ADMIN',
+  UPDATE_WALLET_STATUS: 'UPDATE_WALLET_STATUS',
 } as const;
 
 export const AUDIT_ENTITY_TYPES = {
   USER: 'User',
+  WALLET: 'Wallet',
 } as const;

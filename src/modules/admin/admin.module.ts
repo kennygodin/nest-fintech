@@ -4,9 +4,10 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { AdminService } from 'src/modules/admin/admin.service';
 import { AuditLogModule } from 'src/modules/audit-log/audit-log.module';
 import { AdminSeedService } from 'src/modules/admin/admin-seed.service';
+import { WalletModule } from 'src/modules/wallet/wallet.module';
 
 @Module({
-  imports: [UsersModule, AuditLogModule],
+  imports: [UsersModule, AuditLogModule, WalletModule],
   controllers: [AdminController],
   providers: [AdminService, AdminSeedService],
   exports: [],
