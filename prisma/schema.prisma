@@ -15,6 +15,7 @@ datasource db {
 enum Role {
   user
   admin
+  superadmin
 }
 
 enum WalletStatus {
@@ -42,6 +43,12 @@ enum LedgerEntryType {
   credit
 }
 
+enum UserStatus {
+  active
+  suspended
+  deactivated
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -50,13 +57,14 @@ model User {
   lastName     String?
   profileImage String?
   role         Role     @default(user)
-  isActive     Boolean  @default(true)
+  status       UserStatus  @default(active)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   wallet       Wallet?
   address      Address?
   refreshTokens RefreshToken[]
+  auditLogs    AuditLog[]
 }
 
 model Wallet {
@@ -129,4 +137,17 @@ model Transaction {
   recipientWallet   Wallet? @relation("RecipientTransactions", fields: [recipientWalletId], references: [id])
 
   entries LedgerEntry[]
+}
+
+model AuditLog {
+  id             String             @id @default(uuid())
+  adminId        String
+  admin          User               @relation(fields: [adminId], references: [id])
+  action         String             
+  entityType     String
+  entityId       String
+  metadata       Json
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
 }
