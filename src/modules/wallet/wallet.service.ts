@@ -18,6 +18,20 @@ export class WalletService {
     private readonly usersService: UsersService,
   ) {}
 
+  async updateStatus(walletId: string, status: WalletStatus) {
+    return this.walletRepository.updateWalletStatus(walletId, status);
+  }
+
+  async getWalletById(walletId: string) {
+    const wallet = await this.walletRepository.findWalletById(walletId);
+
+    if (!wallet) {
+      throw new NotFoundException(WALLET_MESSAGES.NOT_FOUND);
+    }
+
+    return wallet;
+  }
+
   async withdraw(
     userId: string,
     amount: number,

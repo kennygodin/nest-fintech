@@ -18,6 +18,7 @@ import { UpdateUserStatusDto } from 'src/modules/admin/dto/update-user-status.dt
 import { AdminService } from 'src/modules/admin/admin.service';
 import { Request } from 'express';
 import { CreateAdminDto } from 'src/modules/admin/dto/create-admin.dto';
+import { UpdateWalletStatusDto } from 'src/modules/admin/dto/update-wallet-status.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -29,6 +30,22 @@ export class AdminController {
     private readonly usersService: UsersService,
     private readonly adminService: AdminService,
   ) {}
+
+  @Patch('wallets/:id/status')
+  @ApiOperation({ summary: 'Suspend, activate or deactivate a wallet' })
+  async updateWalletStatus(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: UpdateWalletStatusDto,
+  ) {
+    return this.adminService.updateWalletStatus(
+      req.user!.id,
+      id,
+      dto.status,
+      req.ip,
+      req.headers['user-agent'],
+    );
+  }
 
   @Post('admins')
   @Roles(Role.superadmin)

@@ -1,22 +1,62 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/modules/users/users.service';
 import { AuditLogService } from 'src/modules/audit-log/audit-log.service';
-import { UserStatus } from 'generated/prisma/enums';
-import { USER_MESSAGES } from 'src/modules/users/users.constants';
+import { UserStatus, WalletStatus } from 'generated/prisma/enums';
 import {
   AUDIT_ACTIONS,
   AUDIT_ENTITY_TYPES,
 } from 'src/modules/admin/admin.constants';
+import { WalletService } from 'src/modules/wallet/wallet.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly usersService: UsersService,
     private readonly auditLogService: AuditLogService,
+    private readonly walletService: WalletService,
   ) {}
 
+  async updateWalletStatus(
+    adminId: string,
+    walletId: string,
+    status: WalletStatus,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
+    await this.walletService.getWalletById(walletId);
+
+    const updatedWallet = await this.walletService.updateStatus(
+      walletId,
+      status,
+    );
+
+    await this.auditLogService.log(
+      adminId,
+      AUDIT_ACTIONS.UPDATE_WALLET_STATUS,
+      AUDIT_ENTITY_TYPES.WALLET,
+      walletId,
+      { newStatus: status },
+      ipAddress,
+      userAgent,
+    );
+
+    const messages: Record<WalletStatus, string> = {
+      [WalletStatus.active]: 'Wallet unfrozen',
+      [WalletStatus.frozen]: 'Wallet frozen',
+      [WalletStatus.closed]: 'Wallet closed',
+    };
+
+    return {
+      message: messages[status],
+      data: {
+        id: updatedWallet.id,
+        status: updatedWallet.status,
+      },
+    };
+  }
+
   async createAdmin(
-    superAdminId: string,
+    adminId: string,
     email: string,
     password: string,
     ipAddress?: string,
@@ -25,7 +65,7 @@ export class AdminService {
     const newAdmin = await this.usersService.createAdminUser(email, password);
 
     await this.auditLogService.log(
-      superAdminId,
+      adminId,
       AUDIT_ACTIONS.CREATE_ADMIN,
       AUDIT_ENTITY_TYPES.USER,
       newAdmin.id,
@@ -44,11 +84,7 @@ export class AdminService {
     ipAddress?: string,
     userAgent?: string,
   ) {
-    const user = await this.usersService.findById(targetUserId);
-
-    if (!user) {
-      throw new NotFoundException(USER_MESSAGES.NOT_FOUND);
-    }
+    await this.usersService.findById(targetUserId);
 
     const updatedUser = await this.usersService.updateStatus(
       targetUserId,
@@ -65,6 +101,19 @@ export class AdminService {
       userAgent,
     );
 
-    return updatedUser;
+    const messages: Record<UserStatus, string> = {
+      [UserStatus.active]: 'User activated',
+      [UserStatus.suspended]: 'User suspended',
+      [UserStatus.deactivated]: 'User deactivated',
+    };
+
+    return {
+      message: messages[status],
+      data: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        status: updatedUser.status,
+      },
+    };
   }
 }

@@ -8,6 +8,6 @@ import { UsersModule } from 'src/modules/users/users.module';
   imports: [UsersModule],
   controllers: [WalletController],
   providers: [WalletService, WalletRepository],
-  exports: [],
+  exports: [WalletService],
 })
 export class WalletModule {}

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { USER_MESSAGES } from './users.constants';
 import { UsersRepository } from './users.repository';
@@ -33,7 +37,13 @@ export class UsersService {
   }
 
   async findById(id: string) {
-    return this.usersRepository.findUserById(id);
+    const user = await this.usersRepository.findUserById(id);
+
+    if (!user) {
+      throw new NotFoundException(USER_MESSAGES.NOT_FOUND);
+    }
+
+    return user;
   }
 
   async findByEmail(email: string) {
