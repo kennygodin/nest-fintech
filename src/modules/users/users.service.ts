@@ -36,6 +36,16 @@ export class UsersService {
     return this.usersRepository.findAllUsers();
   }
 
+  async findByIdSafe(id: string) {
+    const user = await this.usersRepository.findUserByIdSafe(id);
+
+    if (!user) {
+      throw new NotFoundException(USER_MESSAGES.NOT_FOUND);
+    }
+
+    return user;
+  }
+
   async findById(id: string) {
     const user = await this.usersRepository.findUserById(id);
 

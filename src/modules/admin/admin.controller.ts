@@ -35,6 +35,12 @@ export class AdminController {
     private readonly auditLogService: AuditLogService,
   ) {}
 
+  @Get('users/:id')
+  @ApiOperation({ summary: 'Get a single user by id' })
+  async getUserById(@Param('id') id: string) {
+    return this.adminService.getUserById(id);
+  }
+
   @Get('audit-logs')
   @ApiOperation({ summary: 'View the admin audit trail' })
   async listAuditLogs(@Query() query: PaginationDto) {
