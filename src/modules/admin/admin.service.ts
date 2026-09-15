@@ -11,7 +11,10 @@ import {
   AUDIT_ENTITY_TYPES,
 } from 'src/modules/admin/admin.constants';
 import { WalletService } from 'src/modules/wallet/wallet.service';
-import { AdminRepository } from 'src/modules/admin/admin.repository';
+import {
+  AdminRepository,
+  SearchTransactionsFilters,
+} from 'src/modules/admin/admin.repository';
 
 @Injectable()
 export class AdminService {
@@ -21,6 +24,50 @@ export class AdminService {
     private readonly walletService: WalletService,
     private readonly adminRepository: AdminRepository,
   ) {}
+
+  async searchWallet(
+    filters: { status?: WalletStatus; email?: string },
+    page: number,
+    limit: number,
+  ) {
+    const skip = (page - 1) * limit;
+    const { wallets, total } = await this.adminRepository.searchWallets(
+      filters,
+      skip,
+      limit,
+    );
+
+    return {
+      data: wallets,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async searchTransactions(
+    filters: SearchTransactionsFilters,
+    page: number,
+    limit: number,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const { transactions, total } =
+      await this.adminRepository.searchTransactions(filters, skip, limit);
+
+    return {
+      data: transactions,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 
   async getDashboard() {
     const stats = await this.adminRepository.getDashboardStats();
