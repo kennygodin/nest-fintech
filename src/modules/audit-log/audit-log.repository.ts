@@ -6,6 +6,23 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class AuditLogRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findMany(skip: number, take: number) {
+    const [logs, total] = await this.prisma.$transaction([
+      this.prisma.auditLog.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: { admin: { select: { email: true } } },
+      }),
+
+      this.prisma.auditLog.count(),
+    ]);
+
+    return {
+      logs,
+      total,
+    };
+  }
   async create(
     adminId: string,
     action: string,
