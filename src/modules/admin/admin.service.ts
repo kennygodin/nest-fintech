@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/modules/users/users.service';
 import { AuditLogService } from 'src/modules/audit-log/audit-log.service';
-import { UserStatus, WalletStatus } from 'generated/prisma/enums';
+import {
+  TransactionStatus,
+  UserStatus,
+  WalletStatus,
+} from 'generated/prisma/enums';
 import {
   AUDIT_ACTIONS,
   AUDIT_ENTITY_TYPES,
 } from 'src/modules/admin/admin.constants';
 import { WalletService } from 'src/modules/wallet/wallet.service';
+import { AdminRepository } from 'src/modules/admin/admin.repository';
 
 @Injectable()
 export class AdminService {
@@ -14,7 +19,37 @@ export class AdminService {
     private readonly usersService: UsersService,
     private readonly auditLogService: AuditLogService,
     private readonly walletService: WalletService,
+    private readonly adminRepository: AdminRepository,
   ) {}
+
+  async getDashboard() {
+    const stats = await this.adminRepository.getDashboardStats();
+
+    const transactionsByStatus = Object.fromEntries(
+      Object.values(TransactionStatus).map((status) => [
+        status,
+        { count: 0, volume: 0 },
+      ]),
+    );
+
+    for (const row of stats.transactionsByStatus) {
+      const count =
+        typeof row._count === 'object' ? row._count._all : undefined;
+      const volume = row._sum?.amount;
+
+      transactionsByStatus[row.status] = {
+        count: count ?? 0,
+        volume: volume ?? 0,
+      };
+    }
+
+    return {
+      totalUsers: stats.totalUsers,
+      activeUsers: stats.activeUsers,
+      walletBalanceSum: stats.walletBalanceSum,
+      transactionsByStatus,
+    };
+  }
 
   async getUserById(id: string) {
     return this.usersService.findByIdSafe(id);

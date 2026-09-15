@@ -35,6 +35,12 @@ export class AdminController {
     private readonly auditLogService: AuditLogService,
   ) {}
 
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Get admin dashboard metrics' })
+  async getDashboard() {
+    return this.adminService.getDashboard();
+  }
+
   @Get('users/:id')
   @ApiOperation({ summary: 'Get a single user by id' })
   async getUserById(@Param('id') id: string) {
