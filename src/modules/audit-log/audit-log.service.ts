@@ -5,6 +5,21 @@ import { AuditLogRepository } from 'src/modules/audit-log/audit-log.repository';
 export class AuditLogService {
   constructor(private readonly auditLogRepository: AuditLogRepository) {}
 
+  async listAuditLogs(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const { logs, total } = await this.auditLogRepository.findMany(skip, limit);
+
+    return {
+      data: logs,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   async log(
     adminId: string,
     action: string,

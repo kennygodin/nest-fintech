@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -19,6 +20,8 @@ import { AdminService } from 'src/modules/admin/admin.service';
 import { Request } from 'express';
 import { CreateAdminDto } from 'src/modules/admin/dto/create-admin.dto';
 import { UpdateWalletStatusDto } from 'src/modules/admin/dto/update-wallet-status.dto';
+import { AuditLogService } from 'src/modules/audit-log/audit-log.service';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -29,7 +32,14 @@ export class AdminController {
   constructor(
     private readonly usersService: UsersService,
     private readonly adminService: AdminService,
+    private readonly auditLogService: AuditLogService,
   ) {}
+
+  @Get('audit-logs')
+  @ApiOperation({ summary: 'View the admin audit trail' })
+  async listAuditLogs(@Query() query: PaginationDto) {
+    return this.auditLogService.listAuditLogs(query.page, query.limit);
+  }
 
   @Patch('wallets/:id/status')
   @ApiOperation({ summary: 'Suspend, activate or deactivate a wallet' })
