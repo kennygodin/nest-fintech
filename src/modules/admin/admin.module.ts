@@ -5,11 +5,12 @@ import { AdminService } from 'src/modules/admin/admin.service';
 import { AuditLogModule } from 'src/modules/audit-log/audit-log.module';
 import { AdminSeedService } from 'src/modules/admin/admin-seed.service';
 import { WalletModule } from 'src/modules/wallet/wallet.module';
+import { AdminRepository } from 'src/modules/admin/admin.repository';
 
 @Module({
   imports: [UsersModule, AuditLogModule, WalletModule],
   controllers: [AdminController],
-  providers: [AdminService, AdminSeedService],
+  providers: [AdminService, AdminSeedService, AdminRepository],
   exports: [],
 })
 export class AdminModule {}
