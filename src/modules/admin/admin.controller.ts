@@ -22,6 +22,8 @@ import { CreateAdminDto } from 'src/modules/admin/dto/create-admin.dto';
 import { UpdateWalletStatusDto } from 'src/modules/admin/dto/update-wallet-status.dto';
 import { AuditLogService } from 'src/modules/audit-log/audit-log.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { SearchTransactionsDto } from 'src/modules/admin/dto/search-transactions.dto';
+import { SearchWalletsDto } from 'src/modules/admin/dto/search-wallet.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -34,6 +36,22 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly auditLogService: AuditLogService,
   ) {}
+
+  @Get('wallets')
+  @ApiOperation({ summary: 'Search/filter all wallets (admin)' })
+  async searchWallets(@Query() query: SearchWalletsDto) {
+    const { page, limit, ...filters } = query;
+
+    return this.adminService.searchWallet(filters, page, limit);
+  }
+
+  @Get('transactions')
+  @ApiOperation({ summary: 'Search/filter all transactions (admin)' })
+  async searchTransactions(@Query() query: SearchTransactionsDto) {
+    const { page, limit, ...filters } = query;
+
+    return this.adminService.searchTransactions(filters, page, limit);
+  }
 
   @Get('dashboard')
   @ApiOperation({ summary: 'Get admin dashboard metrics' })
