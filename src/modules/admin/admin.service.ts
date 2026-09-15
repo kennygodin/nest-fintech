@@ -16,6 +16,10 @@ export class AdminService {
     private readonly walletService: WalletService,
   ) {}
 
+  async getUserById(id: string) {
+    return this.usersService.findByIdSafe(id);
+  }
+
   async updateWalletStatus(
     adminId: string,
     walletId: string,
