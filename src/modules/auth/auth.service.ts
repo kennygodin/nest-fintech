@@ -7,6 +7,7 @@ import { UsersService } from 'src/modules/users/users.service';
 import { AUTH_MESSAGES } from 'src/modules/auth/auth.constants';
 import { AuthRepository } from 'src/modules/auth/auth.repository';
 import { ConfigService } from '@nestjs/config';
+import { MailService } from 'src/modules/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +16,53 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly authRepository: AuthRepository,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
+
+  async resetPassword(token: string, newPassword: string) {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const resetToken =
+      await this.authRepository.findPasswordResetTokenByHash(tokenHash);
+
+    if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+      throw new UnauthorizedException(AUTH_MESSAGES.INVALID_RESET_TOKEN);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.usersService.updatePassword(resetToken.userId, passwordHash);
+    await this.authRepository.markPasswordResetTokenUsed(resetToken.id);
+    await this.authRepository.revokeAllRefreshTokensForUser(resetToken.userId);
+
+    return {
+      message: AUTH_MESSAGES.RESET_SUCCESSFUL,
+    };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    if (user) {
+      const token = crypto.randomInt(100000, 999999).toString();
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+      await this.authRepository.createPasswordResetToken(
+        user.id,
+        tokenHash,
+        expiresAt,
+      );
+
+      this.mailService.send(
+        user.email,
+        'Resset your password',
+        `Your reset token ${token}`,
+      );
+    }
+
+    return {
+      message: AUTH_MESSAGES.FORGOT_PASSWORD_GENERIC,
+    };
+  }
 
   async logoutAll(userId: string) {
     await this.authRepository.revokeAllRefreshTokensForUser(userId);

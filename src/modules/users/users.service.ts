@@ -12,6 +12,10 @@ import { Role, UserStatus } from 'generated/prisma/enums';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
+  async updatePassword(id: string, passwordHash: string) {
+    return this.usersRepository.updatePassword(id, passwordHash);
+  }
+
   async createAdminUser(email: string, password: string) {
     const existingUser = await this.usersRepository.findUserByEmail(email);
 

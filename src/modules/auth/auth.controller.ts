@@ -22,6 +22,8 @@ import {
 } from 'src/modules/auth/auth.constants';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
+import { ForgotPasswordDto } from 'src/modules/auth/dto/forgot-password.dto';
+import { ResetPasswordDto } from 'src/modules/auth/dto/reset-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -30,6 +32,18 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using a reset token' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return await this.authService.resetPassword(dto.token, dto.newPassword);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request a password reset token' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return await this.authService.forgotPassword(dto.email);
+  }
 
   private setRefreshTokenCookie(
     res: Response,

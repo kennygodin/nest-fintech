@@ -5,6 +5,32 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async markPasswordResetTokenUsed(id: string) {
+    return this.prisma.passwordResetToken.update({
+      where: { id },
+      data: { usedAt: new Date() },
+    });
+  }
+  async findPasswordResetTokenByHash(tokenHash: string) {
+    return this.prisma.passwordResetToken.findFirst({
+      where: { tokenHash },
+    });
+  }
+
+  async createPasswordResetToken(
+    userId: string,
+    tokenHash: string,
+    expiresAt: Date,
+  ) {
+    return this.prisma.passwordResetToken.create({
+      data: {
+        userId,
+        tokenHash,
+        expiresAt,
+      },
+    });
+  }
+
   async createRefreshToken(userId: string, tokenHash: string, expiresAt: Date) {
     return this.prisma.refreshToken.create({
       data: { userId, tokenHash, expiresAt },
