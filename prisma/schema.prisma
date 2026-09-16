@@ -65,6 +65,7 @@ model User {
   address      Address?
   refreshTokens RefreshToken[]
   auditLogs    AuditLog[]
+  notifications Notification[]
 }
 
 model Wallet {
@@ -149,5 +150,16 @@ model AuditLog {
   metadata       Json
   ipAddress      String?
   userAgent      String?
+  createdAt      DateTime @default(now())
+}
+
+model Notification {
+  id             String @id @default(uuid())
+  userId         String
+  user           User   @relation(fields: [userId], references: [id])
+  type           String
+  title          String
+  message        String
+  read           Boolean  @default(false)
   createdAt      DateTime @default(now())
 }
