@@ -1,4 +1,5 @@
 import { BullModule } from '@nestjs/bullmq';
+import throttlerConfig from 'src/config/throttler.config';
 import redisConfig from 'src/config/redis.config';
 import refreshTokenConfig from 'src/config/refresh-token.config';
 import superadminConfig from 'src/config/superadmin.config';
@@ -6,7 +7,7 @@ import appConfig from 'src/config/app.config';
 import databaseConfig from 'src/config/database.config';
 import jwtConfig from 'src/config/jwt.config';
 import { envValidationSchema } from 'src/config/env.validation';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Module } from '@nestjs/common';
@@ -22,6 +23,7 @@ import { TransactionModule } from 'src/modules/transactions/transaction.module';
 import { AuditLogModule } from 'src/modules/audit-log/audit-log.module';
 import { MailModule } from 'src/modules/mail/mail.module';
 import { NotificationsModule } from 'src/modules/notifications/notifications.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -43,9 +45,20 @@ import { NotificationsModule } from 'src/modules/notifications/notifications.mod
       }),
       inject: [ConfigService],
     }),
+    ThrottlerModule.forRootAsync({
+      useFactory: (configService: ConfigService) => [
+        {
+          name: 'default',
+          ttl: configService.getOrThrow<number>('throttler.ttl'),
+          limit: configService.getOrThrow<number>('throttler.limit'),
+        },
+      ],
+      inject: [ConfigService],
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [
+        throttlerConfig,
         appConfig,
         databaseConfig,
         jwtConfig,
@@ -59,6 +72,7 @@ import { NotificationsModule } from 'src/modules/notifications/notifications.mod
   controllers: [AppController],
   providers: [
     AppService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
   ],
