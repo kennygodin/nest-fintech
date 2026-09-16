@@ -6,6 +6,9 @@ export const AUTH_MESSAGES = {
   REFRESH_SUCCESS: 'Refresh successful',
   LOGOUT_SUCCESS: 'Logout successful',
   LOGOUT_ALL_SUCCESS: 'Logout all successful',
+  INVALID_RESET_TOKEN: 'Invalid reset token',
+  FORGOT_PASSWORD_GENERIC: 'If that email exists, we sent a reset link',
+  RESET_SUCCESSFUL: 'Password reset successful',
 } as const;
 
 export enum ClientType {

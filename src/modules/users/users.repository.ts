@@ -7,6 +7,13 @@ import { USER_MESSAGES } from 'src/modules/users/users.constants';
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async updatePassword(id: string, passwordHash: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+    });
+  }
+
   async createAdminUser(email: string, passwordHash: string, role: Role) {
     try {
       return await this.prisma.user.create({
