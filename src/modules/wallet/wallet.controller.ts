@@ -16,6 +16,7 @@ import { DepositDto } from 'src/modules/wallet/dto/deposit.dto';
 import { WALLET_MESSAGES } from 'src/modules/wallet/wallet.constants';
 import { TransferDto } from 'src/modules/wallet/dto/transfer.dto';
 import { WithdrawDto } from 'src/modules/wallet/dto/withdraw.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('wallet')
 @ApiBearerAuth()
@@ -24,6 +25,7 @@ import { WithdrawDto } from 'src/modules/wallet/dto/withdraw.dto';
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('withdraw')
   @ApiOperation({ summary: 'Withdraw funds from your wallet' })
   async withdraw(
@@ -44,6 +46,7 @@ export class WalletController {
     );
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('transfer')
   @ApiOperation({ summary: 'Transfer funds to another user' })
   async transfer(
@@ -64,6 +67,7 @@ export class WalletController {
     );
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('deposit')
   async deposit(
     @Req() req: Request,
