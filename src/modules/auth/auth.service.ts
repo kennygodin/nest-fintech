@@ -72,6 +72,8 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (user) {
+      await this.authRepository.markAllOtpsUsedForUser(user.id);
+
       const otp = crypto.randomInt(100000, 999999).toString();
       const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000);

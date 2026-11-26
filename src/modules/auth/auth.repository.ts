@@ -54,6 +54,13 @@ export class AuthRepository {
     });
   }
 
+  async markAllOtpsUsedForUser(userId: string) {
+    return this.prisma.otp.updateMany({
+      where: { userId, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+  }
+
   async createRefreshToken(userId: string, tokenHash: string, expiresAt: Date) {
     return this.prisma.refreshToken.create({
       data: { userId, tokenHash, expiresAt },

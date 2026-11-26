@@ -39,6 +39,7 @@ describe('AuthService - OTP', () => {
     createOtp: jest.Mock;
     findOtpByHash: jest.Mock;
     markOtpUsed: jest.Mock;
+    markAllOtpsUsedForUser: jest.Mock;
   };
   let mailService: { send: jest.Mock };
 
@@ -48,6 +49,7 @@ describe('AuthService - OTP', () => {
       createOtp: jest.fn(),
       findOtpByHash: jest.fn(),
       markOtpUsed: jest.fn(),
+      markAllOtpsUsedForUser: jest.fn(),
     };
     mailService = { send: jest.fn() };
 
@@ -97,7 +99,21 @@ describe('AuthService - OTP', () => {
 
       expect(result).toEqual({ message: AUTH_MESSAGES.SEND_OTP_GENERIC });
       expect(authRepository.createOtp).not.toHaveBeenCalled();
+      expect(authRepository.markAllOtpsUsedForUser).not.toHaveBeenCalled();
       expect(mailService.send).not.toHaveBeenCalled();
+    });
+
+    it('should invalidate any previous unused OTP before creating a new one', async () => {
+      const user = { id: 'user-1', email: 'user@example.com' };
+      usersService.findByEmail.mockResolvedValue(user);
+
+      await service.sendOtp('user@example.com');
+
+      expect(authRepository.markAllOtpsUsedForUser).toHaveBeenCalledTimes(1);
+      expect(authRepository.markAllOtpsUsedForUser).toHaveBeenCalledWith(
+        'user-1',
+      );
+      expect(authRepository.createOtp).toHaveBeenCalledTimes(1);
     });
   });
 
