@@ -67,6 +67,7 @@ model User {
   auditLogs    AuditLog[]
   notifications Notification[]
   passwordResetToken  PasswordResetToken[]
+  otps Otp[]
 }
 
 model Wallet {
@@ -170,6 +171,16 @@ model PasswordResetToken {
   userId    String
   user      User      @relation(fields: [userId], references: [id])
   tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Otp {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  otpHash   String
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())

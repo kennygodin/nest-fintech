@@ -2,7 +2,11 @@ import { SafeUser } from 'src/modules/users/types/safe-user.type';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { UsersService } from 'src/modules/users/users.service';
 import { AUTH_MESSAGES } from 'src/modules/auth/auth.constants';
 import { AuthRepository } from 'src/modules/auth/auth.repository';
@@ -61,6 +65,45 @@ export class AuthService {
 
     return {
       message: AUTH_MESSAGES.FORGOT_PASSWORD_GENERIC,
+    };
+  }
+
+  async sendOtp(email: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    if (user) {
+      await this.authRepository.markAllOtpsUsedForUser(user.id);
+
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+      await this.authRepository.createOtp(user.id, otpHash, expiresAt);
+
+      this.mailService.send(
+        user.email,
+        'Your OTP code',
+        `Your OTP code is ${otp}`,
+      );
+    }
+
+    return {
+      message: AUTH_MESSAGES.SEND_OTP_GENERIC,
+    };
+  }
+
+  async verifyOtp(token: string) {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const otp = await this.authRepository.findOtpByHash(tokenHash);
+
+    if (!otp || otp.usedAt || otp.expiresAt < new Date()) {
+      throw new BadRequestException(AUTH_MESSAGES.INVALID_OTP);
+    }
+
+    await this.authRepository.markOtpUsed(otp.id);
+
+    return {
+      message: AUTH_MESSAGES.OTP_VERIFIED,
     };
   }
 

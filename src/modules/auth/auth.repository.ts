@@ -31,6 +31,36 @@ export class AuthRepository {
     });
   }
 
+  async createOtp(userId: string, otpHash: string, expiresAt: Date) {
+    return this.prisma.otp.create({
+      data: {
+        userId,
+        otpHash,
+        expiresAt,
+      },
+    });
+  }
+
+  async findOtpByHash(otpHash: string) {
+    return this.prisma.otp.findFirst({
+      where: { otpHash },
+    });
+  }
+
+  async markOtpUsed(id: string) {
+    return this.prisma.otp.update({
+      where: { id },
+      data: { usedAt: new Date() },
+    });
+  }
+
+  async markAllOtpsUsedForUser(userId: string) {
+    return this.prisma.otp.updateMany({
+      where: { userId, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+  }
+
   async createRefreshToken(userId: string, tokenHash: string, expiresAt: Date) {
     return this.prisma.refreshToken.create({
       data: { userId, tokenHash, expiresAt },

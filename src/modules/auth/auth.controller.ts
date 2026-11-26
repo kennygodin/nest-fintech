@@ -24,6 +24,8 @@ import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ForgotPasswordDto } from 'src/modules/auth/dto/forgot-password.dto';
 import { ResetPasswordDto } from 'src/modules/auth/dto/reset-password.dto';
+import { SendOtpDto } from 'src/modules/auth/dto/send-otp.dto';
+import { VerifyOtpDto } from 'src/modules/auth/dto/verify-otp.dto';
 import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('auth')
@@ -46,6 +48,21 @@ export class AuthController {
   @ApiOperation({ summary: 'Request a password reset token' })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return await this.authService.forgotPassword(dto.email);
+  }
+
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Post('send-otp')
+  @ApiOperation({ summary: 'Send OTP to user email' })
+  async sendOtp(@Body() dto: SendOtpDto) {
+    return await this.authService.sendOtp(dto.email);
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post('verify-otp')
+  @ApiOperation({ summary: 'Verify OTP' })
+  @ResponseMessage(AUTH_MESSAGES.OTP_VERIFIED)
+  async verifyOtp(@Body() dto: VerifyOtpDto) {
+    return await this.authService.verifyOtp(dto.token);
   }
 
   private setRefreshTokenCookie(

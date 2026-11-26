@@ -9,6 +9,9 @@ export const AUTH_MESSAGES = {
   INVALID_RESET_TOKEN: 'Invalid reset token',
   FORGOT_PASSWORD_GENERIC: 'If that email exists, we sent a reset link',
   RESET_SUCCESSFUL: 'Password reset successful',
+  SEND_OTP_GENERIC: 'If that email exists, we sent an OTP',
+  OTP_VERIFIED: 'OTP verified successfully',
+  INVALID_OTP: 'Invalid or expired OTP',
 } as const;
 
 export enum ClientType {
